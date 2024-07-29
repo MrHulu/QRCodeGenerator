@@ -1,0 +1,18 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="/">
+    <file>resources/icons/setting.svg</file>
+    <file>resources/icons/text.svg</file>
+    <file>resources/icons/http.svg</file>
+    <file>resources/icons/email.svg</file>
+    <file>resources/icons/tel.svg</file>
+    <file>resources/icons/wifi.svg</file>
+    <file>resources/images/circle.png</file>
+    <file>resources/images/square.png</file>
+    <file>resources/images/gapped.png</file>
+    <file>resources/images/round.png</file>
+    <file>resources/images/horizontal.png</file>
+    <file>resources/images/vertical.png</file>
+    <file>resources/images/color_transparent_rect.png</file>
+  </qresource>
+</RCC>
