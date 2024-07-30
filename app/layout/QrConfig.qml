@@ -46,6 +46,11 @@ Item {
                         Layout.fillHeight: true
                     }
                     Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1;color: "#40404347" }
+                    QrBackgroundConfig {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                    }
+                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1;color: "#40404347" }
                 }
             }
 
@@ -62,6 +67,15 @@ Item {
             }
             Rectangle {
                 visible: swipeView.currentIndex === 2
+                color: "blue"
+                opacity: 0.5
+                ComboBox {
+                    anchors.centerIn: parent
+                    // width: 100
+                    // height: 50
+                    model: ["1", "2", "3"]
+                    currentIndex: 0
+                }
             }
 
         }
