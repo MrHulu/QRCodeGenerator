@@ -14,8 +14,9 @@ class QrcodeGenerator(QObject):
     def __init__(self, parent=None):
         QObject.__init__(self)
         self._is_ok = False
-        self._background = None
+        self._backgroundStrategy = None
         self._foreground_colors = [ "#FF000000" ]
+        self._background_colors = [ "#FFFFFFFF" ]
         self._error_correction = qrcode.constants.ERROR_CORRECT_L
         self.qr = qrcode.QRCode(error_correction=self._error_correction)
         self.qr.clear()
@@ -28,14 +29,16 @@ class QrcodeGenerator(QObject):
         self.errorCorrectionChanged.connect(lambda: self.set_is_ok(False))
         self.moduledrawerTypeChanged.connect(lambda: self.set_is_ok(False))
         self.iconChanged.connect(lambda: self.set_is_ok(False))
-        self.backgroundChanged.connect(lambda: self.set_is_ok(False))
+        self.backgroundStrategyChanged.connect(lambda: self.set_is_ok(False))
         self.foregroundColorsChanged.connect(lambda: self.set_is_ok(False))
+        self.backgroundColorsChanged.connect(lambda: self.set_is_ok(False))
 
 
     # 清理
     def clear(self):
-        self._background = None
+        self._backgroundStrategy = None
         self._foreground_colors = [ "#FF000000" ]
+        self._background_colors = [ "#FFFFFFFF" ]
         self._error_correction = qrcode.constants.ERROR_CORRECT_L
         self.qr = qrcode.QRCode(error_correction=self._error_correction)
         self.qr.clear()
@@ -55,12 +58,14 @@ class QrcodeGenerator(QObject):
         self.qr.make(fit=True)
         self.img = self.qr.make_image(image_factory=StyledPilImage,
             module_drawer=qrcodeworker.ModuleDrawerFactory.get_drawer(self._moduledrawer_type),
-            color_mask=qrcodeworker.ForegroundMaskFactory.get_mask(self._foreground_colors),
+            color_mask=qrcodeworker.ForegroundMaskFactory.get_mask(
+                self._foreground_colors, 
+                self._background_colors[0] if self._backgroundStrategy is None else QColor("#FFFFFFFF")),
             embeded_image = None if self._icon == "" else self._icon
         )
-        if self._background is not None:
+        if self._backgroundStrategy is not None:
             temp = self.img
-            self.img = self._background.apply(temp)
+            self.img = self._backgroundStrategy.apply(temp)
         dir = tempfile.gettempdir() + "/Hulu"
         os.makedirs(dir, exist_ok=True)
         file = f"{dir}/temp.png"
@@ -137,20 +142,20 @@ class QrcodeGenerator(QObject):
     icon = pyqtProperty(str, get_icon, set_icon, notify=iconChanged)
 
     ''' 颜色 '''
-    # 背景
-    def get_background(self):
-        return self._background
+    # 背景策略
+    def get_backgroundStrategy(self):
+        return self._backgroundStrategy
     
-    def set_background(self, value):
-        if isinstance(value, qrcodeworker.BackgroundStrategy):
-            self._background = value
+    def set_backgroundStrategy(self, value):
+        if isinstance(value, qrcodeworker.BackgroundStrategy) or value is None:
+            self._backgroundStrategy = value
             print("Background set successfully: ", value)
-            self.backgroundChanged.emit()
+            self.backgroundStrategyChanged.emit()
         else:
             print(f"Error: Invalid type. Expected BackgroundStrategy, got {type(value)}")
 
-    backgroundChanged = pyqtSignal()
-    background = pyqtProperty(qrcodeworker.BackgroundStrategy, get_background, set_background, notify=backgroundChanged)
+    backgroundStrategyChanged = pyqtSignal()
+    backgroundStrategy = pyqtProperty(qrcodeworker.BackgroundStrategy, get_backgroundStrategy, set_backgroundStrategy, notify=backgroundStrategyChanged)
 
     # 前景色
     def get_foreground_colors(self):
@@ -173,5 +178,28 @@ class QrcodeGenerator(QObject):
     
     foregroundColorsChanged = pyqtSignal()
     foreground_colors = pyqtProperty(list, get_foreground_colors, set_foreground_colors, notify=foregroundColorsChanged)
+
+    # 背景色
+    def get_background_colors(self):
+        return self._background_colors
+    
+    def set_background_colors(self, value):
+        if isinstance(value, list) and len(value) > 0:
+            temp = []
+            for (i, color) in enumerate(value):
+                if isinstance(color, QColor):
+                    temp.append(color)
+                elif isinstance(color, str):
+                    temp.append(QColor(color)) if QColor(color).isValid() else print(f"Error: Invalid color at index {i}")
+            if len(temp) >  0:
+                self._background_colors = temp
+                print("Background colors set successfully: ", [str(color.name()) for color in temp])
+                self.backgroundColorsChanged.emit()
+        else:
+            print(f"Error: Invalid type. Expected list, got {type(value)}")
+    
+    backgroundColorsChanged = pyqtSignal()
+    background_colors = pyqtProperty(list, get_background_colors, set_background_colors, notify=backgroundColorsChanged)
+
 
             

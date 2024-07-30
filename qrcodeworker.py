@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import *
 from qrcode.image.styles.colormasks import *
 from PIL import Image, ImageDraw
@@ -69,21 +70,61 @@ class BackgroundStrategy(QObject):
     def apply(self, img):
         pass
 
+    def eliminateBackground(self, img):
+        if isinstance(img, StyledPilImage) == False:
+            return img
+        img = img.convert("RGBA")
+        datas = img.getdata()
+        newData = []
+        for item in datas:
+            if item[0] == 255 and item[1] == 255 and item[2] == 255:
+                newData.append((255, 255, 255, 0))  # 完全透明
+            else:
+                newData.append(item)  # 不透明的黑色
+        img.putdata(newData)
+        return img
+
 # 透明背景
 class TransparentBackground(BackgroundStrategy):
     def __init__(self, parent=None):
         BackgroundStrategy.__init__(self)
 
     def apply(self, img):
-        return img.convert("RGBA")
+        if isinstance(img, StyledPilImage) == False:
+            return img
+        
+        # # 打开嵌入图像
+        # embedded_img = Image.open(embedded_image_path)
+        # # 获取嵌入图像的位置和大小
+        # embed_pos = ((img.size[0] - embedded_img.size[0]) // 2,
+        #             (img.size[1] - embedded_img.size[1]) // 2)
+        # embed_size = embedded_img.size
+        # width, height = img.size
+        # for i in range(height):
+        #     for j in range(width):
+        #         index = i * width + j
+        #         item = datas[index]
+                
+        #         # 检查像素是否在嵌入图像区域内
+        #         if (embed_pos[0] <= j < embed_pos[0] + embed_size[0] and
+        #             embed_pos[1] <= i < embed_pos[1] + embed_size[1]):
+        #             newData.append(item)  # 保持嵌入图像区域不变
+        #         elif item[0] == 255 and item[1] == 255 and item[2] == 255:
+        #             newData.append((255, 255, 255, 0))  # 将 QR 码的白色背景变为透明
+        #         else:
+        #             newData.append(item)  # 保持其他颜色不变
+
+        return self.eliminateBackground(img)
 
 # 图片背景
 class ImageBackground(BackgroundStrategy):
-    def __init__(self, path, parent=None):
+    def __init__(self, path=None, parent=None):
         BackgroundStrategy.__init__(self)
         self._path = path
 
     def apply(self, img):
+        if self._path is None:
+            return img
         background = Image.open(self._path).resize(img.size)
         return Image.alpha_composite(background.convert("RGBA"), img.convert("RGBA"))
     
@@ -92,7 +133,7 @@ class ImageBackground(BackgroundStrategy):
     
     def set_path(self, path):
         self._path = path
-        self._pathChanged.emit()
+        self.pathChanged.emit()
 
     pathChanged = pyqtSignal()
     path = pyqtProperty(str, get_path, set_path, notify=pathChanged)
@@ -103,15 +144,61 @@ class GradientBackground(BackgroundStrategy):
         BackgroundStrategy.__init__(self)
         self._colors = colors
 
+    def _ensure_rgba(self, color):
+        """确保颜色是RGBA格式"""
+        if isinstance(color, str):
+            # 如果是颜色名称，转换为RGB
+            from PIL import ImageColor
+            color = ImageColor.getrgb(color)
+        if isinstance(color, QColor):
+            color = (color.red(), color.green(), color.blue(), color.alpha())
+        if isinstance(color, tuple):
+            if len(color) == 3:
+                color = color + (255,)
+        return color 
+
     def apply(self, img):
-        gradient = Image.new('RGBA', img.size, color=0)
-        draw = ImageDraw.Draw(gradient)
-        for i, color in enumerate(self._colors):
-            draw.rectangle(
-                [0, i*img.size[1]//len(self._colors), 
-                 img.size[0], (i+1)*img.size[1]//len(self._colors)],
-                fill=color)
-        return Image.alpha_composite(gradient, img.convert("RGBA"))
+        size = img.size
+        color1 = self._ensure_rgba(self._colors[0]) if len(self._colors) > 0 else (255, 255, 255, 255)
+        color2 = self._ensure_rgba(self._colors[1]) if len(self._colors) > 1 else (0, 0, 0, 255)
+        base = Image.new('RGBA', size, color1)
+        top = Image.new('RGBA', size, color2)
+        mask_data = []
+        mask = Image.new('L', size)
+        
+        direction = 'horizontal'
+        if direction == 'horizontal':
+            for y in range(size[1]):
+                for x in range(size[0]):
+                    mask_data.append(int(255 * (x / size[0])))
+        else:  # vertical
+            for y in range(size[1]):
+                for x in range(size[0]):
+                    mask_data.append(int(255 * (y / size[1])))
+        
+        mask.putdata(mask_data)
+        base.paste(top, (0, 0), mask)
+
+        # 消除背景
+        img = self.eliminateBackground(img)
+
+        # 取反
+        img_mask = Image.new('L', size)
+        img = img.convert("RGBA")
+        datas = img.getdata()
+        mask_data.clear()
+        for item in datas:
+            if item[3] != 0:
+                mask_data.append(0)  # 黑：透明
+            else:
+                mask_data.append((255))  # 白：不透明
+        img_mask.putdata(mask_data)
+        img_mask.show()
+
+        img.paste(base, None, img_mask)
+        img.show()
+        return img
+        
     
     def get_colors(self):
         return self._colors
