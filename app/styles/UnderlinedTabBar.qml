@@ -7,9 +7,9 @@ Control {
 
     required property var tabTexts // 标签内容
     property int currentIndex: 0 // 当前选中的标签索引
-    property color textColor: "black" // 文字颜色
-    property color activeTextColor: "#FF66B8FF" // 选中时的文字颜色
-    property color underlineColor: "#FF66B8FF" // 下划线颜色
+    property color textColor: Themes.foreground // 文字颜色
+    property color activeTextColor: Themes.accent // 选中时的文字颜色
+    property color underlineColor: Themes.accent // 下划线颜色
     property int underlineHeight: 2 // 下划线高度
     property bool autofill: true // 是否自动填充
 

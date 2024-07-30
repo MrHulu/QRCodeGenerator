@@ -2,6 +2,8 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import QtGraphicalEffects 1.15
+import QtQuick.Controls.Material 2.12
+import "../styles"
 
 Control {
     id: control
@@ -52,9 +54,9 @@ Control {
                 icon.width: 24
                 icon.height: 24
                 highlighted: flow.currentIndex === index
-                icon.color: highlighted ? "white" : "steelblue"
+                icon.color: highlighted ? Themes.background : Themes.accent
                 autoExclusive: true
-                // palette.text: highlighted ? "white" : "steelblue" // 无效
+                Material.foreground: highlighted ? Themes.background : Themes.accent
                 onClicked: {
                     if(highlighted) return
                     flow.currentIndex = index    
@@ -63,7 +65,7 @@ Control {
                 background: Rectangle {
                     anchors.fill: parent
                     radius: 10
-                    color: highlighted ? "steelblue" : "transparent"
+                    color: highlighted ? Themes.accent : "transparent"
                 }
             }
         }
