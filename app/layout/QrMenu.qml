@@ -11,6 +11,8 @@ Control {
     implicitHeight: 80
     
     signal qrCodeTypeChanged(string type)
+    readonly property int currentIndex: flow.currentIndex
+    
 
     Flow {
         id: flow
