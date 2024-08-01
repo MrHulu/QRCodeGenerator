@@ -1,6 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
+import QtQuick.Dialogs 1.3
 import "../styles"
 import "../components"
 import Qrcodeworker 1.0
@@ -37,7 +38,7 @@ Item {
                 gradient_colorRect.color = color
                 gradient_colorLabel.text = rgba
             }
-            if(type.currentIndex !== 0) {
+            if(type.currentIndex !== QrBackgroundConfig.Type.SolidType) {
                 qrcodegenrator.background_colors = [colorRect.color, gradient_colorRect.color]
                 gradientBackground.colors = [colorRect.color, gradient_colorRect.color]
             }
@@ -87,20 +88,37 @@ Item {
                 text: colorRect.color 
             }
         }
+        
         Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 32
             Control {
+                id: image_upload
+                height: parent.height
+                width: upload_button.width
+                visible: type.currentIndex === QrBackgroundConfig.Type.ImageType
+                GradientButton {
+                    id: upload_button
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "上传"
+                    onClicked: fileDialog.open()
+                }
+                FileDialog {
+                    id: fileDialog
+                    selectMultiple: false
+                    selectFolder: false
+                    nameFilters: ["Images (*.png *.jpg *.jpeg *.svg)"]
+                    onAccepted: {
+                        var path = fileDialog.fileUrl
+                        if(path)  imageBackground.path = path 
+                    }
+                }
+            }
+            Control {
                 id: gradient_color
                 height: parent.height
                 width: gradient_colorRect.width + gradient_colorLabel.width + 16
-                opacity: type.currentIndex === 0 ? 0 : 1
-                NumberAnimation on opacity {
-                    running: type.currentIndex !== 0
-                    from: 0;to: 1
-                    easing.type: Easing.InOutQuad
-                    duration: 300
-                }
+                visible: type.currentIndex === QrBackgroundConfig.Type.GradientType
                 MouseArea {
                     id: gradient_colorRect_mouseArea
                     anchors.fill: parent
@@ -133,19 +151,24 @@ Item {
                     text: gradient_colorRect.color
                 }
             }
+            
             ComboBox {
                 id: type
                 anchors.verticalCenter: parent.verticalCenter
-                readonly property int pos : gradient_color.width + gradient_colorLabel.width + 32
+                readonly property int pos:  {
+                    if(type.currentIndex === QrBackgroundConfig.Type.GradientType) return gradient_color.width + 32
+                    else if(type.currentIndex === QrBackgroundConfig.Type.ImageType) return image_upload.width + 32
+                    else return 0
+                }
                 x: pos//checked ? pos : 0
                 NumberAnimation on x {
-                    running: type.currentIndex !== 0
+                    running: (type.currentIndex === QrBackgroundConfig.Type.GradientType) || (type.currentIndex === QrBackgroundConfig.Type.ImageType)
                     from: 0; to: type.pos
                     easing.type: Easing.InOutElastic
                     duration: 300
                 }
                 NumberAnimation on x {
-                    running: type.currentIndex === 0
+                    running: !((type.currentIndex === QrBackgroundConfig.Type.GradientType) || (type.currentIndex === QrBackgroundConfig.Type.ImageType))
                     from: type.pos; to: 0
                     easing.type: Easing.InOutElastic
                     duration: 300

@@ -70,19 +70,43 @@ class BackgroundStrategy(QObject):
     def apply(self, img):
         pass
 
-    def eliminateBackground(self, img):
+    def eliminateBackground(self, img, embedded_image_path=None):
         if isinstance(img, StyledPilImage) == False:
             return img
-        img = img.convert("RGBA")
-        datas = img.getdata()
-        newData = []
-        for item in datas:
-            if item[0] == 255 and item[1] == 255 and item[2] == 255:
-                newData.append((255, 255, 255, 0))  # 完全透明
-            else:
-                newData.append(item)  # 不透明的黑色
+        if embedded_image_path is None:
+            img = img.convert("RGBA")
+            datas = img.getdata()
+            newData = []
+            for item in datas:
+                if item[0] == 255 and item[1] == 255 and item[2] == 255:
+                    newData.append((255, 255, 255, 0))  # 完全透明
+                else:
+                    newData.append(item)  # 不透明的黑色
+        else:
+            # 打开嵌入图像
+            embedded_img = Image.open(embedded_image_path)
+            # 获取嵌入图像的位置和大小
+            embed_pos = ((img.size[0] - embedded_img.size[0]) // 2,
+                        (img.size[1] - embedded_img.size[1]) // 2)
+            embed_size = embedded_img.size
+            width, height = img.size
+            for i in range(height):
+                for j in range(width):
+                    index = i * width + j
+                    item = datas[index]
+                    
+                    # 检查像素是否在嵌入图像区域内
+                    if (embed_pos[0] <= j < embed_pos[0] + embed_size[0] and
+                        embed_pos[1] <= i < embed_pos[1] + embed_size[1]):
+                        newData.append(item)  # 保持嵌入图像区域不变
+                    elif item[0] == 255 and item[1] == 255 and item[2] == 255:
+                        newData.append((255, 255, 255, 0))  # 将 QR 码的白色背景变为透明
+                    else:
+                        newData.append(item)  # 保持其他颜色不变
         img.putdata(newData)
         return img
+    
+    dataChanged = pyqtSignal()
 
 # 透明背景
 class TransparentBackground(BackgroundStrategy):
@@ -92,27 +116,6 @@ class TransparentBackground(BackgroundStrategy):
     def apply(self, img):
         if isinstance(img, StyledPilImage) == False:
             return img
-        
-        # # 打开嵌入图像
-        # embedded_img = Image.open(embedded_image_path)
-        # # 获取嵌入图像的位置和大小
-        # embed_pos = ((img.size[0] - embedded_img.size[0]) // 2,
-        #             (img.size[1] - embedded_img.size[1]) // 2)
-        # embed_size = embedded_img.size
-        # width, height = img.size
-        # for i in range(height):
-        #     for j in range(width):
-        #         index = i * width + j
-        #         item = datas[index]
-                
-        #         # 检查像素是否在嵌入图像区域内
-        #         if (embed_pos[0] <= j < embed_pos[0] + embed_size[0] and
-        #             embed_pos[1] <= i < embed_pos[1] + embed_size[1]):
-        #             newData.append(item)  # 保持嵌入图像区域不变
-        #         elif item[0] == 255 and item[1] == 255 and item[2] == 255:
-        #             newData.append((255, 255, 255, 0))  # 将 QR 码的白色背景变为透明
-        #         else:
-        #             newData.append(item)  # 保持其他颜色不变
 
         return self.eliminateBackground(img)
 
@@ -121,12 +124,28 @@ class ImageBackground(BackgroundStrategy):
     def __init__(self, path=None, parent=None):
         BackgroundStrategy.__init__(self)
         self._path = path
+        self.pathChanged.connect(lambda: self.dataChanged.emit())
 
     def apply(self, img):
         if self._path is None:
             return img
         background = Image.open(self._path).resize(img.size)
-        return Image.alpha_composite(background.convert("RGBA"), img.convert("RGBA"))
+        # 消除背景
+        img = self.eliminateBackground(img)
+        
+        # 取反
+        img_mask = Image.new('L', img.size)
+        img = img.convert("RGBA")
+        datas = img.getdata()
+        mask_data = []
+        for item in datas:
+            if item[3] != 0:
+                mask_data.append(0)  # 黑：透明
+            else:
+                mask_data.append((255))  # 白：不透明
+        img_mask.putdata(mask_data)
+        img.paste(background, None, img_mask)
+        return img
     
     def get_path(self):
         return self._path
@@ -143,6 +162,7 @@ class GradientBackground(BackgroundStrategy):
     def __init__(self, colors):
         BackgroundStrategy.__init__(self)
         self._colors = colors
+        self.colorsChanged.connect(lambda: self.dataChanged.emit())
 
     def _ensure_rgba(self, color):
         """确保颜色是RGBA格式"""

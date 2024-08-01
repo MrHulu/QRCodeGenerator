@@ -151,6 +151,8 @@ class QrcodeGenerator(QObject):
             self._backgroundStrategy = value
             print("Background set successfully: ", value)
             self.backgroundStrategyChanged.emit()
+            if value is not None:
+                self.backgroundStrategy.dataChanged.connect(lambda: self.set_is_ok(False))
         else:
             print(f"Error: Invalid type. Expected BackgroundStrategy, got {type(value)}")
 
