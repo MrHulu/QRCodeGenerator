@@ -13,7 +13,7 @@ from PIL import Image
 class QrcodeGenerator(QObject):
     def __init__(self, parent=None):
         QObject.__init__(self)
-        self._is_ok = False
+        self._ready = False
         self._backgroundStrategy = None
         self._foreground_colors = [ "#FF000000" ]
         self._background_colors = [ "#FFFFFFFF" ]
@@ -24,14 +24,14 @@ class QrcodeGenerator(QObject):
         self._icon = ""
         self._data = ""
         self._moduledrawer_type = "square"
-        # 所以的set的信号都会触发set_is_ok(False)
-        self.dataChanged.connect(lambda: self.set_is_ok(False))
-        self.errorCorrectionChanged.connect(lambda: self.set_is_ok(False))
-        self.moduledrawerTypeChanged.connect(lambda: self.set_is_ok(False))
-        self.iconChanged.connect(lambda: self.set_is_ok(False))
-        self.backgroundStrategyChanged.connect(lambda: self.set_is_ok(False))
-        self.foregroundColorsChanged.connect(lambda: self.set_is_ok(False))
-        self.backgroundColorsChanged.connect(lambda: self.set_is_ok(False))
+        # 所以的set的信号都会触发set_ready(False)
+        self.dataChanged.connect(lambda: self.set_ready(False))
+        self.errorCorrectionChanged.connect(lambda: self.set_ready(False))
+        self.moduledrawerTypeChanged.connect(lambda: self.set_ready(False))
+        self.iconChanged.connect(lambda: self.set_ready(False))
+        self.backgroundStrategyChanged.connect(lambda: self.set_ready(False))
+        self.foregroundColorsChanged.connect(lambda: self.set_ready(False))
+        self.backgroundColorsChanged.connect(lambda: self.set_ready(False))
 
 
     # 清理
@@ -53,7 +53,7 @@ class QrcodeGenerator(QObject):
         if self._data == "":
             print("Error: No data to generate")
             return
-        self.set_is_ok(False)
+        self.set_ready(False)
         qrcode.QRCode(error_correction=self._error_correction)
         self.qr.make(fit=True)
         self.img = self.qr.make_image(image_factory=StyledPilImage,
@@ -72,7 +72,7 @@ class QrcodeGenerator(QObject):
         if os.path.exists(file): os.remove(file)
 
         self.img.save(file)
-        self.set_is_ok(True)
+        self.set_ready(True)
 
     # 保存
     @pyqtSlot(str)
@@ -83,13 +83,13 @@ class QrcodeGenerator(QObject):
             print("Error: No image to save")
         
     # 修改中
-    def get_is_ok(self):
-        return self._is_ok
-    def set_is_ok(self, value):
-        self._is_ok = value
+    def get_ready(self):
+        return self._ready
+    def set_ready(self, value):
+        self._ready = value
         self.isBusyChanged.emit()
     isBusyChanged = pyqtSignal()
-    is_ok = pyqtProperty(bool, get_is_ok, notify=isBusyChanged)
+    ready = pyqtProperty(bool, get_ready, notify=isBusyChanged)
 
     # 内容
     def get_data(self):
@@ -152,7 +152,7 @@ class QrcodeGenerator(QObject):
             print("Background set successfully: ", value)
             self.backgroundStrategyChanged.emit()
             if value is not None:
-                self.backgroundStrategy.dataChanged.connect(lambda: self.set_is_ok(False))
+                self.backgroundStrategy.dataChanged.connect(lambda: self.set_ready(False))
         else:
             print(f"Error: Invalid type. Expected BackgroundStrategy, got {type(value)}")
 

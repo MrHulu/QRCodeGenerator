@@ -22,17 +22,64 @@ ApplicationWindow {
         anchors.top: parent.top
         onQrCodeTypeChanged: {
             console.log("onQrCodeType: ", type)
+            label.text = type
         }
     }
-
-    QrConfig {
-        id: qrConfig
+    
+    Item {
         anchors.left: parent.left
         anchors.right: previews.left
         anchors.top: qrMenu.bottom
         anchors.bottom: parent.bottom
         anchors.margins: 20
         anchors.rightMargin: 60
+        
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 20
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Label {
+                    id: label
+                    text: "文本"
+                    font.bold: true
+                    font.pixelSize: 24
+                    color: Themes.accent
+                }
+                Loader {
+                    id: loader
+                    anchors.top: label.bottom
+                    anchors.topMargin: 10
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    property string qrcontent: ""
+                    // sourceComponent: {
+                    //     switch(qrMenu.currentIndex) {
+                    //     default:
+                    //     case 0: return textComponent
+                    //     case 1: return linkComponent
+                    //     case 2: return emailComponent
+                    //     case 3: return telComponent
+                    //     case 4: return wifiComponent
+                    //     }
+                    // }
+                }
+                // Component {
+                //     id: textComponent
+                // }
+                // Component {
+
+                // }
+            }
+            QrConfig {
+                id: qrConfig
+                Layout.preferredHeight: 400
+                Layout.fillWidth: true
+                // Layout.fillHeight: true
+            }
+        }
     }
 
     QrPreviews {
@@ -41,7 +88,8 @@ ApplicationWindow {
         anchors.rightMargin: 20
         anchors.verticalCenter: parent.verticalCenter
         image: ""
-        isOk: qrcodegenrator ? qrcodegenrator.is_ok : false
+        enabled: loader.qrcontent !== ""
+        isReady: qrcodegenrator ? qrcodegenrator.ready : false
         onPreviews: {
             qrcodegenrator.data = "Hello World"
             qrcodegenrator.generate()
@@ -51,22 +99,4 @@ ApplicationWindow {
             qrcodegenrator.save(path)
         }
     }
- 
-    // property GradientBackground gradientBackground: GradientBackground {
-    //     colors: ["#ff0000", "#00ff00"]
-    // }
-    // Flow {
-    //     anchors.fill: parent
-    //     spacing: 10
-    //     Button {
-    //         id: button
-    //         text: "GradientBackground"
-    //         onClicked: {
-                
-    //             console.log("onClicked: ", qrcodegenrator.background, gradientBackground)
-                
-    //             qrcodegenrator.background = gradientBackground
-    //         }
-    //     }
-    // }
 }

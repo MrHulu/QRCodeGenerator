@@ -12,7 +12,7 @@ Control {
     padding: 10
     clip: false
 
-    required property bool isOk
+    required property bool isReady
     required property url image
     
     signal previews()
@@ -28,7 +28,8 @@ Control {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Image {
-                visible: !isOk
+                visible: !isReady
+                opacity: control.enabled ? 1 : 0.5
                 anchors.centerIn: parent
                 width: parent.width/4
                 height: parent.height/4
@@ -44,7 +45,7 @@ Control {
             }
             Image {
                 id: preview
-                visible: isOk
+                visible: isReady
                 anchors.fill: parent       
                 cache: false         
                 asynchronous: true
@@ -58,7 +59,7 @@ Control {
             GradientButton {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 40
-                enabled: isOk
+                enabled: isReady
                 radius: height/3
                 text: "保存"       
                 useStyle: GradientButton.Style.ButtonLineGradient
