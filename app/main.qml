@@ -21,8 +21,8 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.top: parent.top
         onQrCodeTypeChanged: {
-            console.log("onQrCodeType: ", type)
             label.text = type
+            loader.qrcontent = ""
         }
     }
     
@@ -55,23 +55,32 @@ ApplicationWindow {
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
                     property string qrcontent: ""
-                    // sourceComponent: {
-                    //     switch(qrMenu.currentIndex) {
-                    //     default:
-                    //     case 0: return textComponent
-                    //     case 1: return linkComponent
-                    //     case 2: return emailComponent
-                    //     case 3: return telComponent
-                    //     case 4: return wifiComponent
-                    //     }
-                    // }
+                    onQrcontentChanged: { if(qrcodegenrator) qrcodegenrator.ready = false }
+                    sourceComponent: {
+                        switch(qrMenu.currentIndex) {
+                        default:
+                        case 0: return textComponent
+                        case 1: return linkComponent
+                        // case 2: return emailComponent
+                        // case 3: return telComponent
+                        // case 4: return wifiComponent
+                        }
+                    }
                 }
-                // Component {
-                //     id: textComponent
-                // }
-                // Component {
-
-                // }
+                Component {
+                    id: textComponent
+                    TextContent {
+                        id: textContent
+                        onTextChanged: loader.qrcontent = textContent.text
+                    }
+                }
+                Component {
+                    id: linkComponent
+                    HttpContent {
+                        id: httpContent
+                        onTextChanged: loader.qrcontent = httpContent.text
+                    }
+                }
             }
             QrConfig {
                 id: qrConfig
@@ -91,7 +100,7 @@ ApplicationWindow {
         enabled: loader.qrcontent !== ""
         isReady: qrcodegenrator ? qrcodegenrator.ready : false
         onPreviews: {
-            qrcodegenrator.data = "Hello World"
+            qrcodegenrator.data = loader.qrcontent
             qrcodegenrator.generate()
             previews.image = "%1/Hulu/temp.png".arg(StandardPaths.writableLocation(StandardPaths.TempLocation))
         }
