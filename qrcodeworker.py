@@ -127,7 +127,7 @@ class ImageBackground(BackgroundStrategy):
         self.pathChanged.connect(lambda: self.dataChanged.emit())
 
     def apply(self, img):
-        if self._path is None:
+        if self._path is None or self._path == "":
             return img
         background = Image.open(self._path).resize(img.size)
         # 消除背景
