@@ -89,7 +89,7 @@ class QrcodeGenerator(QObject):
         self._ready = value
         self.isBusyChanged.emit()
     isBusyChanged = pyqtSignal()
-    ready = pyqtProperty(bool, get_ready, notify=isBusyChanged)
+    ready = pyqtProperty(bool, get_ready, set_ready, notify=isBusyChanged)
 
     # 内容
     def get_data(self):
