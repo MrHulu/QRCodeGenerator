@@ -62,9 +62,7 @@ Item {
                 anchors.fill: parent
                 hoverEnabled: true
                 onClicked: {
-                    colorGenerator.parent = colorRect
-                    colorGenerator.y = colorRect.height
-                    colorGenerator.open()
+                    colorGenerator.show(colorRect)
                 }
                 cursorShape: Qt.PointingHandCursor
             }
@@ -124,9 +122,7 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
-                        colorGenerator.parent = gradient_colorRect
-                        colorGenerator.y = -gradient_colorRect.height - colorGenerator.height
-                        colorGenerator.open()
+                        colorGenerator.show(gradient_colorRect)
                     }
                     cursorShape: Qt.PointingHandCursor
                 }

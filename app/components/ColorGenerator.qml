@@ -24,6 +24,16 @@ Popup {
     property bool alphaEnabled: true
     signal accepted(color color, string rgba)
 
+    function show(parentItem) {
+        if (parentItem) {
+            parent = parentItem
+            var mappedPoint = parent.mapToItem(ApplicationWindow.window.contentItem, 0, 0)
+            y = (mappedPoint.y + parent.height + height > ApplicationWindow.window.height) ?  - height : parent.height 
+            x = (mappedPoint.x + width > ApplicationWindow.window.width) ? - width : 0
+        }
+        popup.open()
+    } 
+
     contentItem: Item {
         GridLayout {
             anchors.fill: parent
