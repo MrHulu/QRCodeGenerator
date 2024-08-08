@@ -80,6 +80,7 @@ T.ComboBox {
         selectedTextColor: control.Material.primaryHighlightedTextColor
         verticalAlignment: Text.AlignVCenter
 
+
         cursorDelegate: CursorDelegate { }
     }
     background: Rectangle {
@@ -87,12 +88,13 @@ T.ComboBox {
         implicitHeight: 32
         // anchors.fill: parent
         radius: 4
-        color: "#FFF5F7FA"
+        color: control.backgroundColor
     }
 
     popup: T.Popup {
         y: control.height + 12
-        width: control.width
+        implicitWidth: contentItem.implicitWidth
+        width: Math.max(control.width, implicitWidth)
         height: Math.min(contentItem.implicitHeight + topPadding + bottomPadding,
                          control.Window.height - topMargin - bottomMargin)
         transformOrigin: Item.Top
@@ -114,12 +116,15 @@ T.ComboBox {
 
         contentItem: ScrollView {
             implicitHeight: contentHeight
+            implicitWidth: contentWidth
             rightPadding: 2
+            leftPadding: 2
             ScrollBar.vertical.policy: listView.interactive ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
             ListView {
                 id: listView
                 anchors.fill: parent
-                anchors.rightMargin: parent.width - parent.ScrollBar.vertical.x
+                anchors.rightMargin: parent.ScrollBar.vertical.policy === ScrollBar.AlwaysOn ? parent.width - parent.ScrollBar.vertical.x : 0
                 clip: true
                 model: control.delegateModel
                 currentIndex: control.highlightedIndex
