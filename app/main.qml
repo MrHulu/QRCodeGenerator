@@ -14,7 +14,6 @@ ApplicationWindow {
     width: 1024
     height: 800
     title: "QR Code Generator"
-
     QrMenu {
         id: qrMenu
         anchors.left: parent.left
@@ -62,7 +61,7 @@ ApplicationWindow {
                         case 0: return textComponent
                         case 1: return linkComponent
                         // case 2: return emailComponent
-                        // case 3: return telComponent
+                        case 3: return telComponent
                         // case 4: return wifiComponent
                         }
                     }
@@ -79,6 +78,13 @@ ApplicationWindow {
                     HttpContent {
                         id: httpContent
                         onTextChanged: loader.qrcontent = httpContent.text
+                    }
+                }
+                Component {
+                    id: telComponent
+                    TelContent {
+                        id: telContent
+                        onTextChanged: loader.qrcontent = telContent.text
                     }
                 }
             }
