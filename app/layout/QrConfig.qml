@@ -56,25 +56,22 @@ Item {
 
             Rectangle {
                 visible: swipeView.currentIndex === 1
-                color: "green"
-                opacity: 0.5
-                CircleRing {
+                color: "transparent"
+                Label { 
                     anchors.centerIn: parent
-                    ringColor: "red"
-                    innerRadius: 40
-                    outerRadius: 60
+                    text: "抱歉，该功能作者正在努力开发中..."
+                    font.bold: true
+                    font.pixelSize: 24
                 }
             }
             Rectangle {
                 visible: swipeView.currentIndex === 2
-                color: "blue"
-                opacity: 0.5
-                ComboBox {
+                color: "transparent"
+                Label { 
                     anchors.centerIn: parent
-                    // width: 100
-                    // height: 50
-                    model: ["1", "2", "3"]
-                    currentIndex: 0
+                    text: "抱歉，该功能作者正在努力开发中..."
+                    font.bold: true
+                    font.pixelSize: 24
                 }
             }
 

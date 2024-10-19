@@ -57,12 +57,12 @@ ApplicationWindow {
                     onQrcontentChanged: { if(qrcodegenrator) qrcodegenrator.ready = false }
                     sourceComponent: {
                         switch(qrMenu.currentIndex) {
-                        default:
                         case 0: return textComponent
                         case 1: return linkComponent
                         // case 2: return emailComponent
                         case 3: return telComponent
                         // case 4: return wifiComponent
+                        default: return todoComponent
                         }
                     }
                 }
@@ -87,6 +87,34 @@ ApplicationWindow {
                         onTextChanged: loader.qrcontent = telContent.text
                     }
                 }
+                
+                Component {
+                    id: todoComponent
+                    Control {
+                        implicitHeight: 300
+                        implicitWidth: 400
+                        padding: 20
+                        Label {
+                            anchors.centerIn: parent
+                            text: "抱歉，该功能作者正在努力开发中..."
+                            font.bold: true
+                            font.pixelSize: 24
+                        }
+                        background: Rectangle {
+                            anchors.fill: parent
+                            radius: 10
+                            layer.enabled: true
+                            layer.effect: DropShadow {
+                                verticalOffset: 1
+                                horizontalOffset: 1
+                                radius: 8
+                                samples: 17
+                                color: "#80000000"
+                            }
+                        }
+                    }
+                }
+                
             }
             QrConfig {
                 id: qrConfig

@@ -8,7 +8,7 @@ QtObject {
     }
     property int theme: Themes.ThemeStyle.Light
     property color primaryColor: "#FF66B8FF" //"#00c43d" 
-    property color secondaryColor: "#00f54c"
+    property color secondaryColor: "#dcdcdc"
 
     property color accent: theme === Themes.ThemeStyle.Light ? "#FF338BFF" : "#FF66B8FF"//"#006e22" : "00b739"
     property color background: theme === Themes.ThemeStyle.Light ? "#f8f8ff" : "#1B1B1F"
