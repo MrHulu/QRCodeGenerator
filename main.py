@@ -3,6 +3,7 @@ import qrcodeworker
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtQml import QQmlApplicationEngine, qmlRegisterType, qmlRegisterUncreatableType
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QIcon
 import resources_rc
 import sys
 
@@ -13,6 +14,7 @@ if __name__ == "__main__":
         QCoreApplication.setApplicationName("二维码生成解释器")
 
         app = QApplication(sys.argv)
+        app.setWindowIcon(QIcon("app/resources/Logo.png"))
         engine = QQmlApplicationEngine()
         qrcode_genrator = qrcodegenrator.QrcodeGenerator()
 
